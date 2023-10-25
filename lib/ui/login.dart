@@ -124,18 +124,8 @@ class _LoginPageState extends State<LoginPage> {
                                       if (_formKey.currentState!.validate()) {
                                         var res = await UserServices.login(
                                             username: usernameController.text, password: passwordController.text);
-                                        if (res.statusCode == 200) {
+                                        if (res.statusCode == 200)
                                           Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
-                                        } else {
-                                          Fluttertoast.showToast(
-                                              msg: "Login Failed",
-                                              toastLength: Toast.LENGTH_SHORT,
-                                              gravity: ToastGravity.BOTTOM,
-                                              timeInSecForIosWeb: 1,
-                                              backgroundColor: Colors.red,
-                                              textColor: Colors.white,
-                                              fontSize: 16.0);
-                                        }
                                       }
                                     }),
                                   ),

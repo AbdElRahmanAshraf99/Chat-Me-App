@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:chat_me_app/services/UserSevices.dart';
 import 'package:chat_me_app/ui/login.dart';
 import 'package:chat_me_app/ui/newChatPage.dart';
@@ -12,6 +14,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  ImageProvider? fileImage = AssetImage("assets/logo.png");
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +29,8 @@ class _HomePageState extends State<HomePage> {
               accountName: Text(UserServices.currentUser!.firstname! + " " + UserServices.currentUser!.lastname!),
               accountEmail: Text(UserServices.currentUser!.username!),
               currentAccountPicture: CircleAvatar(
-                backgroundImage: AssetImage("assets/logo.png"),
+                backgroundImage: UserServices.currentUser!.image == null ? fileImage : FileImage(
+                    UserServices.currentUser!.image!),
               ),
               decoration: BoxDecoration(
                 // color: Color.fromRGBO(36, 65, 91, 1.0),
@@ -39,6 +44,7 @@ class _HomePageState extends State<HomePage> {
               leading: Icon(Icons.person),
               title: Text("Profile"),
               onTap: () {
+                Navigator.pop(context);
                 Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage()));
               },
             ),

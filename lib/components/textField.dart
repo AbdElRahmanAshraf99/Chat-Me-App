@@ -88,3 +88,54 @@ class _MyPasswordTextFieldState extends State<MyPasswordTextField> {
     );
   }
 }
+
+class PasswordTextField extends StatefulWidget {
+  final TextEditingController controller;
+  final String hintText;
+
+  const PasswordTextField({
+    super.key,
+    required this.controller,
+    required this.hintText,
+  });
+
+  @override
+  State<PasswordTextField> createState() => _PasswordTextFieldState();
+}
+
+class _PasswordTextFieldState extends State<PasswordTextField> {
+  bool _passwordVisible = false;
+  Icon _buttonIcon = Icon(Icons.visibility_off);
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: widget.controller,
+      obscureText: !_passwordVisible,
+      decoration: InputDecoration(
+          suffixIcon: IconButton(
+            icon: _buttonIcon,
+            onPressed: () {
+              setState(() {
+                _passwordVisible = !_passwordVisible;
+                if (_passwordVisible == false) {
+                  _buttonIcon = Icon(Icons.visibility_off);
+                } else {
+                  _buttonIcon = Icon(Icons.visibility);
+                }
+              });
+            },
+          ),
+          border: const OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.white),
+          ),
+          labelText: widget.hintText),
+    );
+  }
+}

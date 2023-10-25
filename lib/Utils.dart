@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 
@@ -38,5 +40,26 @@ class HeroPhotoViewRouteWrapper extends StatelessWidget {
         heroAttributes: const PhotoViewHeroAttributes(tag: "someTag"),
       ),
     );
+  }
+}
+
+class Debouncer {
+  final int milliseconds;
+  VoidCallback? action;
+  Timer? _timer;
+
+  Debouncer({required this.milliseconds});
+
+  run(VoidCallback action) {
+    if (null != _timer) {
+      _timer!.cancel();
+    }
+    _timer = Timer(Duration(milliseconds: milliseconds), action);
+  }
+}
+
+class StringEditor {
+  static String capitalize(String? text) {
+    return text != null && text.length > 0 ? '${text[0].toUpperCase()}${text.substring(1).toLowerCase()}' : '';
   }
 }

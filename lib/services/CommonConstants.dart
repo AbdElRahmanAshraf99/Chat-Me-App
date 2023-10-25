@@ -6,4 +6,10 @@ class CommonConstants {
   static String LOGIN_USER_URL = "/chatme/auth/login";
   static String FETCH_USER_DATA = "/user/fetchUserData";
   static String FIND_USERS = "/user/find-user";
+  static String SAVE_IMAGE = "/user/saveImage";
+  static String REMOVE_IMAGE = "/user/removeImage";
+  static String FETCH_IMAGE = "/user/getImage";
+  static String UPDATE_USER = "/user/update-user";
+  static String CHANGE_PASSWORD = "/user/changePassword";
+  static String DELETE_ACCOUNT = "/user/deleteAccount";
 }

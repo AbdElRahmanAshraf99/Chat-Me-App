@@ -1,8 +1,15 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:chat_me_app/Utils.dart';
 import 'package:chat_me_app/services/CommonConstants.dart';
 import 'package:dart_json_mapper/dart_json_mapper.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../dtos/DTOUser.dart';
 
@@ -35,6 +42,8 @@ class UserServices {
       token = "Bearer " + json.decode(response.body)["token"];
       _requestHeaders['Authorization'] = token;
       await UserServices.fetchCurrentUserData();
+    } else {
+      failureToast(response.body);
     }
     return response;
   }
@@ -44,6 +53,7 @@ class UserServices {
         await http.get(Uri.parse(CommonConstants.BASE_URL + CommonConstants.FETCH_USER_DATA), headers: _requestHeaders);
     if (response.statusCode == 200) {
       currentUser = JsonMapper.deserialize<DTOUser>(response.body);
+      await resetUserImage();
     }
     return response;
   }
@@ -57,8 +67,124 @@ class UserServices {
     List<DTOUser> users = [];
     if (response.statusCode == 200) {
       Iterable l = json.decode(response.body);
-      users = List<DTOUser>.from(l.map((user)=> JsonMapper.deserialize<DTOUser>(user)));
+      users = List<DTOUser>.from(l.map((user)=> DTOUser.fromJson(user)));
     }
     return users;
+  }
+
+  static Future<void> changeImage(File? file) async {
+    if (file == null) {
+      var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.REMOVE_IMAGE);
+      var response = await http.post(url, headers: _requestHeaders);
+      toastResponseMsg(response);
+      return;
+    }
+    var bytes = await file.readAsBytes();
+    var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.SAVE_IMAGE);
+    http.MultipartRequest request = new http.MultipartRequest("post", url);
+    request.headers.addAll(_requestHeaders);
+    request.files.add(new http.MultipartFile.fromBytes("image", bytes,
+        /*ParamName*/ filename: "image", contentType: new MediaType('image', '*')));
+    var response = await request.send();
+    var msg = await response.stream.bytesToString();
+    if (response.statusCode == 200)
+      successToast(msg);
+    else
+      failureToast(msg);
+    await resetUserImage();
+  }
+
+  static void failureToast(String msg) {
+    Fluttertoast.showToast(
+        msg: msg,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
+
+  static void successToast(String msg) {
+    Fluttertoast.showToast(
+        msg: msg,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
+
+  static void toastResponseMsg(Response response) {
+    if (response.statusCode == 200) {
+      successToast(response.body.toString());
+    } else {
+      failureToast(response.body.toString().isEmpty ? response.statusCode.toString() : response.body.toString());
+    }
+  }
+
+  static Future<File?> resetUserImage() async {
+    if (currentUser == null) return null;
+    var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.FETCH_IMAGE);
+    var response = await http.get(url, headers: _requestHeaders);
+    final Directory directory = await getApplicationDocumentsDirectory();
+    File file = await File('${directory.path}/example.jpg');
+    if (await file.exists()) {
+      await file.delete();
+      imageCache.clear();
+      file = await File('${directory.path}/example.jpg');
+    }
+    if (response.body.isEmpty) {
+      currentUser!.image = null;
+    } else {
+      file = await file.writeAsBytes(response.bodyBytes);
+      currentUser!.image = file;
+    }
+    return file;
+  }
+
+  static Future<Response?>? editUserData(String key, String value) async {
+    if (!changesExists(key, value)) return null;
+    var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.UPDATE_USER);
+    Map<String, String> body = new Map();
+    body[key] = value;
+    var response = await http.patch(url, headers: _requestHeaders, body: body);
+    if (response.statusCode != 200)
+      failureToast(response.body);
+    else
+      successToast(StringEditor.capitalize(key) + " updated Successfully");
+    return response;
+  }
+
+  static bool changesExists(String key, String value) {
+    switch (key) {
+      case "firstname":
+        return value != currentUser!.firstname;
+      case "lastname":
+        return value != currentUser!.lastname;
+      case "email":
+        return value != currentUser!.email;
+    }
+    return true;
+  }
+
+  static Future<Response?>? changePassword(String oldPassword, String newPassword) async {
+    var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.CHANGE_PASSWORD);
+    Map<String, String> body = new Map();
+    body["oldPassword"] = oldPassword;
+    body["newPassword"] = newPassword;
+    var response = await http.patch(url, headers: _requestHeaders, body: body);
+    toastResponseMsg(response);
+    return response;
+  }
+
+  static Future<Response?>? deleteAccount(String password) async {
+    var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.DELETE_ACCOUNT);
+    Map<String, String> body = new Map();
+    body["password"] = password;
+    var response = await http.delete(url, headers: _requestHeaders, body: body);
+    toastResponseMsg(response);
+    return response;
   }
 }
