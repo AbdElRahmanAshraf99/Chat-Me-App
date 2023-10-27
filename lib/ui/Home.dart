@@ -14,6 +14,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  var imageProvider = UserServices.currentUser!.image;
   ImageProvider? fileImage = AssetImage("assets/logo.png");
 
   @override
@@ -29,8 +30,7 @@ class _HomePageState extends State<HomePage> {
               accountName: Text(UserServices.currentUser!.firstname! + " " + UserServices.currentUser!.lastname!),
               accountEmail: Text(UserServices.currentUser!.username!),
               currentAccountPicture: CircleAvatar(
-                backgroundImage: UserServices.currentUser!.image == null ? fileImage : FileImage(
-                    UserServices.currentUser!.image!),
+                backgroundImage: imageProvider,
               ),
               decoration: BoxDecoration(
                 // color: Color.fromRGBO(36, 65, 91, 1.0),
@@ -45,7 +45,10 @@ class _HomePageState extends State<HomePage> {
               title: Text("Profile"),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage()))
+                    .then((value) => this.setState(() {
+                          imageProvider = UserServices.currentUser!.image;
+                        }));
               },
             ),
             ListTile(

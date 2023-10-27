@@ -12,4 +12,7 @@ class CommonConstants {
   static String UPDATE_USER = "/user/update-user";
   static String CHANGE_PASSWORD = "/user/changePassword";
   static String DELETE_ACCOUNT = "/user/deleteAccount";
+  static String FETCH_USER_IMAGE = "/user/fetchUserImage";
+  static String SEND_FRIEND_REQUEST = "/user/sendFriendRequest";
+  static String CANCEL_FRIEND_REQUEST = "/user/cancelFriendRequest";
 }

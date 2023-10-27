@@ -1,4 +1,3 @@
-import 'package:chat_me_app/Utils.dart';
 import 'package:chat_me_app/services/UserSevices.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +13,8 @@ class SearchFriendsPage extends StatefulWidget {
 class _SearchFriendsPageState extends State<SearchFriendsPage> {
   TextEditingController searchController = TextEditingController();
   List<DTOUser> users = [];
+  List<String?> sentFriendRequests =
+      UserServices.currentUser!.sentFriendRequests.map((e) => e.toUser!.username).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -50,33 +51,50 @@ class _SearchFriendsPageState extends State<SearchFriendsPage> {
               ),
             ),
             Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: users.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    alignment: Alignment.center,
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: AppUtils.fetchColorFromHex("A76B09"),
-                        foregroundColor: AppUtils.fetchColorFromHex("272A31"),
-                        radius: 22,
-                        child: Icon(Icons.person, size: 30),
+              child: users.isNotEmpty
+                  ? ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: users.length,
+                      itemBuilder: (context, index) {
+                        return Container(
+                          alignment: Alignment.center,
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              radius: 22,
+                              backgroundImage: users[index].image,
+                              // child: Icon(Icons.person, size: 30),
+                            ),
+                            title: Text(users[index].firstname! + " " + users[index].lastname!),
+                            subtitle: Text(users[index].username!),
+                            trailing: IconButton(
+                              icon: UserServices.currentUser!.sentFriendRequests
+                                      .any((request) => request.toUser!.username == users[index].username!)
+                                  ? Icon(Icons.delete)
+                                  : Icon(Icons.add),
+                              onPressed: () async {
+                                if (UserServices.currentUser!.sentFriendRequests
+                                    .any((request) => request.toUser!.username == users[index].username!)) {
+                                  UserServices.currentUser!.sentFriendRequests
+                                      .removeWhere((request) => request.toUser!.username == users[index].username!);
+                                  setState(() {});
+                                  await UserServices.cancelFriendRequest(users[index].username!);
+                                } else {
+                                  UserServices.currentUser!.sentFriendRequests.add(DTOSentFriendRequest(users[index]));
+                                  setState(() {});
+                                  await UserServices.sendFriendRequest(users[index].username!);
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : Center(
+                      child: Text(
+                        "Sorry, No Users Found",
+                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, fontStyle: FontStyle.italic),
                       ),
-                      title: Text(users[index].firstname! + " " + users[index].lastname!),
-                      subtitle: Text(users[index].username!),
-                      trailing: IconButton(
-                        icon: Icon(Icons.add),
-                        onPressed: () {
-                          //TODO:: Handle Send Friend Request in Server and Mobile
-                          print(users[index].username!);
-                        },
-                      ),
-                      onTap: () {},
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),

@@ -1,15 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:chat_me_app/Utils.dart';
 import 'package:chat_me_app/services/CommonConstants.dart';
-import 'package:dart_json_mapper/dart_json_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../dtos/DTOUser.dart';
 
@@ -51,10 +50,7 @@ class UserServices {
   static Future<http.Response> fetchCurrentUserData() async {
     var response =
         await http.get(Uri.parse(CommonConstants.BASE_URL + CommonConstants.FETCH_USER_DATA), headers: _requestHeaders);
-    if (response.statusCode == 200) {
-      currentUser = JsonMapper.deserialize<DTOUser>(response.body);
-      await resetUserImage();
-    }
+    if (response.statusCode == 200) currentUser = DTOUser.fromJson(json.decode(response.body));
     return response;
   }
 
@@ -76,6 +72,7 @@ class UserServices {
     if (file == null) {
       var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.REMOVE_IMAGE);
       var response = await http.post(url, headers: _requestHeaders);
+      currentUser!.image = null;
       toastResponseMsg(response);
       return;
     }
@@ -87,11 +84,12 @@ class UserServices {
         /*ParamName*/ filename: "image", contentType: new MediaType('image', '*')));
     var response = await request.send();
     var msg = await response.stream.bytesToString();
-    if (response.statusCode == 200)
+    if (response.statusCode == 200) {
+      currentUser!.image = Image.memory(Uint8List.fromList(bytes)).image;
       successToast(msg);
-    else
+    } else {
       failureToast(msg);
-    await resetUserImage();
+    }
   }
 
   static void failureToast(String msg) {
@@ -122,26 +120,6 @@ class UserServices {
     } else {
       failureToast(response.body.toString().isEmpty ? response.statusCode.toString() : response.body.toString());
     }
-  }
-
-  static Future<File?> resetUserImage() async {
-    if (currentUser == null) return null;
-    var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.FETCH_IMAGE);
-    var response = await http.get(url, headers: _requestHeaders);
-    final Directory directory = await getApplicationDocumentsDirectory();
-    File file = await File('${directory.path}/example.jpg');
-    if (await file.exists()) {
-      await file.delete();
-      imageCache.clear();
-      file = await File('${directory.path}/example.jpg');
-    }
-    if (response.body.isEmpty) {
-      currentUser!.image = null;
-    } else {
-      file = await file.writeAsBytes(response.bodyBytes);
-      currentUser!.image = file;
-    }
-    return file;
   }
 
   static Future<Response?>? editUserData(String key, String value) async {
@@ -184,6 +162,24 @@ class UserServices {
     Map<String, String> body = new Map();
     body["password"] = password;
     var response = await http.delete(url, headers: _requestHeaders, body: body);
+    toastResponseMsg(response);
+    return response;
+  }
+
+  static Future<Response?>? sendFriendRequest(String username) async {
+    var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.SEND_FRIEND_REQUEST);
+    Map<String, String> body = new Map();
+    body["friendUsername"] = username;
+    var response = await http.post(url, headers: _requestHeaders, body: body);
+    toastResponseMsg(response);
+    return response;
+  }
+
+  static Future<Response?>? cancelFriendRequest(String username) async {
+    var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.CANCEL_FRIEND_REQUEST);
+    Map<String, String> body = new Map();
+    body["friendUsername"] = username;
+    var response = await http.post(url, headers: _requestHeaders, body: body);
     toastResponseMsg(response);
     return response;
   }

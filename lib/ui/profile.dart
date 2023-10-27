@@ -27,14 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
   var newPasswordController = new TextEditingController();
   var reTypeNewPasswordController = new TextEditingController();
   Widget deleteBtnChild = Text("Delete");
-  ImageProvider? imageProvider = null;
-
-  @override
-  void initState() {
-    super.initState();
-    imageProvider = AssetImage("assets/logo.png");
-    if (UserServices.currentUser!.image != null) imageProvider = FileImage(UserServices.currentUser!.image!);
-  }
+  ImageProvider? imageProvider = UserServices.currentUser!.image;
 
   @override
   Widget build(BuildContext context) {
@@ -241,11 +234,11 @@ class _ProfilePageState extends State<ProfilePage> {
           backgroundColor: Colors.grey[800],
           title: Text("Remove Image"),
           trailingIcon: Icon(Icons.delete_forever),
-          onPressed: () {
+          onPressed: () async {
             if (imageProvider == null) return;
+            await UserServices.changeImage(null);
             setState(() {
               imageProvider = null;
-              UserServices.changeImage(null);
             });
           },
         ),
@@ -285,27 +278,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 onPressed: () async {
                   if (oldPasswordController.text.isEmpty) {
                     UserServices.failureToast("Please Fill Old Password Field");
-                    return;
-                  }
-                  if (newPasswordController.text.isEmpty) {
+                  } else if (newPasswordController.text.isEmpty) {
                     UserServices.failureToast("Please Fill New Password Field");
-                    return;
-                  }
-                  if (reTypeNewPasswordController.text.isEmpty) {
+                  } else if (reTypeNewPasswordController.text.isEmpty) {
                     UserServices.failureToast("Please Fill Re-Type New Password Field");
-                    return;
-                  }
-                  if (oldPasswordController.text == newPasswordController.text) {
+                  } else if (oldPasswordController.text == newPasswordController.text) {
                     UserServices.failureToast("Old Password and New Password are equal");
-                    return;
-                  }
-                  if (newPasswordController.text != reTypeNewPasswordController.text) {
+                  } else if (newPasswordController.text != reTypeNewPasswordController.text) {
                     UserServices.failureToast("Password and Re-Type Password are not equal");
-                    return;
+                  } else {
+                    var response =
+                        await UserServices.changePassword(oldPasswordController.text, newPasswordController.text);
+                    if (response != null && response.statusCode == 200) Navigator.pop(context);
                   }
-                  var response =
-                      await UserServices.changePassword(oldPasswordController.text, newPasswordController.text);
-                  if (response != null && response.statusCode == 200) Navigator.pop(context);
                 },
                 child: Text("Save"),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green),

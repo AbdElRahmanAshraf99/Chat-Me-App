@@ -125,7 +125,8 @@ class _LoginPageState extends State<LoginPage> {
                                         var res = await UserServices.login(
                                             username: usernameController.text, password: passwordController.text);
                                         if (res.statusCode == 200)
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
+                                          Navigator.pushAndRemoveUntil(context,
+                                              MaterialPageRoute(builder: (context) => HomePage()), (r) => false);
                                       }
                                     }),
                                   ),
