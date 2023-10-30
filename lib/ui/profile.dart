@@ -1,7 +1,7 @@
 import 'dart:io' show File;
 
 import 'package:chat_me_app/components/textField.dart';
-import 'package:chat_me_app/services/UserSevices.dart';
+import 'package:chat_me_app/services/UserServices.dart';
 import 'package:flutter/material.dart';
 import 'package:focused_menu_custom/focused_menu.dart';
 import 'package:focused_menu_custom/modals.dart';
@@ -27,12 +27,13 @@ class _ProfilePageState extends State<ProfilePage> {
   var newPasswordController = new TextEditingController();
   var reTypeNewPasswordController = new TextEditingController();
   Widget deleteBtnChild = Text("Delete");
-  ImageProvider? imageProvider = UserServices.currentUser!.image;
+  ImageProvider? imageProvider = UserServices.currentUser.image;
+  bool _isSaveChangePasswordClicked = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
+      appBar: AppBar(
         title: Text("Profile"),
         centerTitle: true,
         actions: [
@@ -88,14 +89,9 @@ class _ProfilePageState extends State<ProfilePage> {
           width: MediaQuery.of(context).size.width * 0.9,
           child: TextFormField(
             style: TextStyle(color: Colors.white),
-            initialValue: UserServices.currentUser!.username,
+            initialValue: UserServices.currentUser.username,
             enabled: false,
-            decoration: InputDecoration(
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
-                ),
-                fillColor: Colors.transparent,
-                labelText: "Username"),
+            decoration: InputDecoration(fillColor: Colors.transparent, labelText: "Username"),
           ),
         ),
       ],
@@ -109,12 +105,12 @@ class _ProfilePageState extends State<ProfilePage> {
         Container(
           width: MediaQuery.of(context).size.width * 0.9,
           child: TextFormField(
-            initialValue: UserServices.currentUser!.firstname,
+            initialValue: UserServices.currentUser.firstname,
             onChanged: (value) {
               firstNameDebouncer.run(() async {
                 var response = await UserServices.editUserData("firstname", value);
                 if (response != null && response.statusCode == 200) {
-                  UserServices.currentUser!.firstname = value;
+                  UserServices.currentUser.firstname = value;
                 }
               });
             },
@@ -139,12 +135,12 @@ class _ProfilePageState extends State<ProfilePage> {
         Container(
           width: MediaQuery.of(context).size.width * 0.9,
           child: TextFormField(
-            initialValue: UserServices.currentUser!.lastname,
+            initialValue: UserServices.currentUser.lastname,
             onChanged: (value) {
               lastNameDebouncer.run(() async {
                 var response = await UserServices.editUserData("lastname", value);
                 if (response != null && response.statusCode == 200) {
-                  UserServices.currentUser!.lastname = value;
+                  UserServices.currentUser.lastname = value;
                 }
               });
             },
@@ -166,12 +162,12 @@ class _ProfilePageState extends State<ProfilePage> {
         Container(
           width: MediaQuery.of(context).size.width * 0.9,
           child: TextFormField(
-            initialValue: UserServices.currentUser!.email,
+            initialValue: UserServices.currentUser.email,
             onChanged: (value) {
               emailDebouncer.run(() async {
                 var response = await UserServices.editUserData("email", value);
                 if (response != null && response.statusCode == 200) {
-                  UserServices.currentUser!.email = value;
+                  UserServices.currentUser.email = value;
                 }
               });
             },
@@ -261,79 +257,91 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void onChangePasswordClicked() {
     showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Center(
-              child: Text("Change Password"),
-            ),
-            actions: [
-              ElevatedButton(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, StateSetter setState) {
+            return AlertDialog(
+              title: Center(child: Text("Change Password")),
+              actions: [
+                ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
                   },
                   child: Text("Cancel"),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red)),
-              ElevatedButton(
-                onPressed: () async {
-                  if (oldPasswordController.text.isEmpty) {
-                    UserServices.failureToast("Please Fill Old Password Field");
-                  } else if (newPasswordController.text.isEmpty) {
-                    UserServices.failureToast("Please Fill New Password Field");
-                  } else if (reTypeNewPasswordController.text.isEmpty) {
-                    UserServices.failureToast("Please Fill Re-Type New Password Field");
-                  } else if (oldPasswordController.text == newPasswordController.text) {
-                    UserServices.failureToast("Old Password and New Password are equal");
-                  } else if (newPasswordController.text != reTypeNewPasswordController.text) {
-                    UserServices.failureToast("Password and Re-Type Password are not equal");
-                  } else {
-                    var response =
-                        await UserServices.changePassword(oldPasswordController.text, newPasswordController.text);
-                    if (response != null && response.statusCode == 200) Navigator.pop(context);
-                  }
-                },
-                child: Text("Save"),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              ),
-            ],
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  child: PasswordTextField(
-                    controller: oldPasswordController,
-                    hintText: "Old Password",
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 ),
-                SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  child: PasswordTextField(
-                    controller: newPasswordController,
-                    hintText: "New Password",
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  child: PasswordTextField(
-                    controller: reTypeNewPasswordController,
-                    hintText: "Re-Type New Password",
-                  ),
+                ElevatedButton(
+                  onPressed: _isSaveChangePasswordClicked
+                      ? null
+                      : () async {
+                          if (oldPasswordController.text.isEmpty) {
+                            UserServices.failureToast("Please Fill Old Password Field");
+                          } else if (newPasswordController.text.isEmpty) {
+                            UserServices.failureToast("Please Fill New Password Field");
+                          } else if (reTypeNewPasswordController.text.isEmpty) {
+                            UserServices.failureToast("Please Fill Re-Type New Password Field");
+                          } else if (oldPasswordController.text == newPasswordController.text) {
+                            UserServices.failureToast("Old Password and New Password are equal");
+                          } else if (newPasswordController.text != reTypeNewPasswordController.text) {
+                            UserServices.failureToast("Password and Re-Type Password are not equal");
+                          } else {
+                            setState(() {
+                              _isSaveChangePasswordClicked = true;
+                            });
+                            var response = await UserServices.changePassword(
+                                oldPasswordController.text, newPasswordController.text);
+                            if (response != null && response.statusCode == 200) Navigator.pop(context);
+                            setState(() {
+                              _isSaveChangePasswordClicked = false;
+                            });
+                          }
+                        },
+                  child: _isSaveChangePasswordClicked
+                      ? SizedBox(width: 15, height: 15, child: CircularProgressIndicator())
+                      : Text("Save"),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                 ),
               ],
-            ),
-          );
-        });
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    child: PasswordTextField(
+                      controller: oldPasswordController,
+                      hintText: "Old Password",
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    child: PasswordTextField(
+                      controller: newPasswordController,
+                      hintText: "New Password",
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    child: PasswordTextField(
+                      controller: reTypeNewPasswordController,
+                      hintText: "Re-Type New Password",
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void onDeleteAccountClicked() {
     showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (context) {
           return AlertDialog(
@@ -372,7 +380,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         context, MaterialPageRoute(builder: (context) => LoginPage()), (r) => false);
                 },
                 child: deleteBtnChild,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
               ),
             ],
             content: Column(
@@ -385,9 +393,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     hintText: "Password",
                   ),
                 ),
-                SizedBox(
-                  height: 10,
-                ),
+                SizedBox(height: 10),
               ],
             ),
           );

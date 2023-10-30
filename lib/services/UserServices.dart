@@ -15,21 +15,23 @@ import '../dtos/DTOUser.dart';
 class UserServices {
   static String token = "";
   static Map<String, String> _requestHeaders = new Map();
-  static DTOUser? currentUser;
+  static DTOUser currentUser = new DTOUser.emptyInstance();
 
   static Future<http.Response> registerUser(
       {required String username,
       required String firstname,
       required String lastname,
       required String password,
-      String? email}) {
+      String? email}) async {
     var map = new Map<String, dynamic>();
     map['username'] = username;
     map['firstname'] = firstname;
     map['lastname'] = lastname;
     map['password'] = password;
     map['email'] = email;
-    return http.post(Uri.parse(CommonConstants.BASE_URL + CommonConstants.ADD_USER_URL), body: map);
+    var response = await http.post(Uri.parse(CommonConstants.BASE_URL + CommonConstants.ADD_USER_URL), body: map);
+    toastResponseMsg(response);
+    return response;
   }
 
   static Future<http.Response> login({required String username, required String password}) async {
@@ -72,7 +74,7 @@ class UserServices {
     if (file == null) {
       var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.REMOVE_IMAGE);
       var response = await http.post(url, headers: _requestHeaders);
-      currentUser!.image = null;
+      currentUser.image = null;
       toastResponseMsg(response);
       return;
     }
@@ -138,11 +140,11 @@ class UserServices {
   static bool changesExists(String key, String value) {
     switch (key) {
       case "firstname":
-        return value != currentUser!.firstname;
+        return value != currentUser.firstname;
       case "lastname":
-        return value != currentUser!.lastname;
+        return value != currentUser.lastname;
       case "email":
-        return value != currentUser!.email;
+        return value != currentUser.email;
     }
     return true;
   }
@@ -181,6 +183,36 @@ class UserServices {
     body["friendUsername"] = username;
     var response = await http.post(url, headers: _requestHeaders, body: body);
     toastResponseMsg(response);
+    return response;
+  }
+
+  static rereadFriendRequests() async {
+    var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.READ_FRIEND_REQUESTS);
+    var response = await http.get(url, headers: _requestHeaders);
+    if (response.statusCode == 200) {
+      Iterable l = json.decode(response.body);
+      currentUser.friendRequests = List<DTOFriendRequest>.from(l.map((request) => DTOFriendRequest.fromJson(request)));
+    }
+    return response;
+  }
+
+  static acceptFriendRequest(String username) async {
+    var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.ACCEPT_FRIEND_REQUESTS);
+    Map<String, String> body = new Map();
+    body["friendUsername"] = username;
+    var response = await http.post(url, headers: _requestHeaders, body: body);
+    toastResponseMsg(response);
+    await rereadFriendRequests();
+    return response;
+  }
+
+  static declineFriendRequest(String username) async {
+    var url = Uri.parse(CommonConstants.BASE_URL + CommonConstants.DECLINE_FRIEND_REQUESTS);
+    Map<String, String> body = new Map();
+    body["friendUsername"] = username;
+    var response = await http.post(url, headers: _requestHeaders, body: body);
+    toastResponseMsg(response);
+    await rereadFriendRequests();
     return response;
   }
 }

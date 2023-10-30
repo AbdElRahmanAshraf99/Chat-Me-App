@@ -14,10 +14,12 @@ class DTOUser {
   String? _lastname;
   String? _email;
   DateTime? _creationDate;
-  List<dynamic>? _friends;
+  List<DTOUser>? _friends;
   List<DTOPrivateChatRoom>? privateChatRooms;
   List<DTOFriendRequest>? _friendRequests;
   List<DTOSentFriendRequest>? _sentFriendRequests;
+
+  DTOUser.emptyInstance();
 
   DTOUser(this._image, this._username, this._firstname, this._lastname, this._email, this._creationDate, this._friends,
       this.privateChatRooms, this._friendRequests, this._sentFriendRequests);
@@ -71,9 +73,9 @@ class DTOUser {
 
   String? get firstname => _firstname;
 
-  List<dynamic> get friends => _friends ?? [];
+  List<DTOUser> get friends => _friends ?? [];
 
-  set friends(List<dynamic> value) {
+  set friends(List<DTOUser> value) {
     _friends = value;
   }
 
@@ -148,7 +150,7 @@ class DTOSentFriendRequest {
 
 class DTOFriendRequest {
   int? _id;
-  DTOUser? _fromUser;
+  DTOUser _fromUser;
   DateTime? _creationDate;
   bool? _isRead;
 
@@ -169,9 +171,9 @@ class DTOFriendRequest {
     _creationDate = value;
   }
 
-  DTOUser? get fromUser => _fromUser;
+  DTOUser get fromUser => _fromUser;
 
-  set fromUser(DTOUser? value) {
+  set fromUser(DTOUser value) {
     _fromUser = value;
   }
 

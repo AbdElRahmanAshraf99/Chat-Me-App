@@ -1,10 +1,9 @@
 import 'dart:ui';
 
-import 'package:chat_me_app/services/UserSevices.dart';
+import 'package:chat_me_app/services/UserServices.dart';
 import 'package:chat_me_app/ui/Home.dart';
 import 'package:chat_me_app/ui/register.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import '../components/button.dart';
 import '../components/textField.dart';
@@ -20,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   // text editing controllers
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
-
+  bool _isPressed = false;
   double _sigmaX = 5; // from 0-10
   double _sigmaY = 5; // from 0-10
   double _opacity = 0.2;
@@ -119,16 +118,34 @@ class _LoginPageState extends State<LoginPage> {
                                   ]),
                                   const SizedBox(height: 10),
                                   MyButton(
-                                    text: "Log In",
-                                    onTap: (() async {
-                                      if (_formKey.currentState!.validate()) {
-                                        var res = await UserServices.login(
+                                    child: _isPressed
+                                        ? CircularProgressIndicator(
+                                            color: Colors.white,
+                                          )
+                                        : Text(
+                                            "Log In",
+                                            style: TextStyle(
+                                                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 25),
+                                          ),
+                                    onTap: _isPressed
+                                        ? null
+                                        : () async {
+                                            if (_formKey.currentState!.validate()) {
+                                              setState(() {
+                                                _isPressed = true;
+                                              });
+                                              var res = await UserServices.login(
                                             username: usernameController.text, password: passwordController.text);
-                                        if (res.statusCode == 200)
-                                          Navigator.pushAndRemoveUntil(context,
+                                              if (res.statusCode == 200) {
+                                                Navigator.pushAndRemoveUntil(context,
                                               MaterialPageRoute(builder: (context) => HomePage()), (r) => false);
-                                      }
-                                    }),
+                                              } else {
+                                                setState(() {
+                                                  _isPressed = false;
+                                                });
+                                              }
+                                            }
+                                          },
                                   ),
                                   const SizedBox(height: 10),
                                   Row(

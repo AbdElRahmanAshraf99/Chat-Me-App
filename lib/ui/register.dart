@@ -1,9 +1,8 @@
 import 'dart:ui';
 
-import 'package:chat_me_app/services/UserSevices.dart';
+import 'package:chat_me_app/services/UserServices.dart';
 import 'package:chat_me_app/ui/login.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import '../components/button.dart';
 import '../components/textField.dart';
@@ -22,12 +21,10 @@ class _RegisterPageState extends State<RegisterPage> {
   final firstnameController = TextEditingController();
   final lastnameController = TextEditingController();
   final passwordController = TextEditingController();
-
+  bool _isPressed = false;
   double _sigmaX = 5; // from 0-10
   double _sigmaY = 5; // from 0-10
   double _opacity = 0.2;
-  double _width = 350;
-  double _height = 300;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -134,40 +131,37 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ),
                                       const SizedBox(height: 20),
                                       MyButton(
-                                        text: "Sign Up",
-                                        onTap: () {
-                                          if (_formKey.currentState!.validate()) {
-                                            UserServices.registerUser(
+                                        child: _isPressed
+                                            ? CircularProgressIndicator(
+                                                color: Colors.white,
+                                              )
+                                            : Text(
+                                                "Sign Up",
+                                                style: TextStyle(
+                                                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 25),
+                                              ),
+                                        onTap: _isPressed
+                                            ? null
+                                            : () async {
+                                                if (!_formKey.currentState!.validate()) return;
+                                                setState(() {
+                                                  _isPressed = true;
+                                                });
+                                                var res = await UserServices.registerUser(
                                                     username: usernameController.text,
                                                     firstname: firstnameController.text,
                                                     lastname: lastnameController.text,
                                                     password: passwordController.text,
-                                                    email: emailController.text)
-                                                .then((res) {
-                                              if (res.statusCode == 200) {
-                                                Fluttertoast.showToast(
-                                                    msg: "Register Successful",
-                                                    toastLength: Toast.LENGTH_SHORT,
-                                                    gravity: ToastGravity.BOTTOM,
-                                                    timeInSecForIosWeb: 1,
-                                                    backgroundColor: Colors.green,
-                                                    textColor: Colors.white,
-                                                    fontSize: 16.0);
-                                                Navigator.push(
-                                                    context, MaterialPageRoute(builder: (context) => LoginPage()));
+                                                    email: emailController.text);
+                                                if (res.statusCode == 200) {
+                                                  Navigator.push(
+                                                      context, MaterialPageRoute(builder: (context) => LoginPage()));
                                               } else {
-                                                Fluttertoast.showToast(
-                                                    msg: res.body.toString(),
-                                                    toastLength: Toast.LENGTH_SHORT,
-                                                    gravity: ToastGravity.BOTTOM,
-                                                    timeInSecForIosWeb: 1,
-                                                    backgroundColor: Colors.red,
-                                                    textColor: Colors.white,
-                                                    fontSize: 16.0);
-                                              }
-                                            });
-                                          }
-                                        },
+                                                  setState(() {
+                                                    _isPressed = false;
+                                                  });
+                                                }
+                                              },
                                       ),
                                       const SizedBox(height: 10),
                                     ],
