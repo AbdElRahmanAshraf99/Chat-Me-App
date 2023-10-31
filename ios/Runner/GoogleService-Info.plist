@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyCf5thNHpCqcRUa7ovEZbcYXdVoKx2yMO0</string>
+	<key>GCM_SENDER_ID</key>
+	<string>203928614103</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.chatMe.chatMeApp</string>
+	<key>PROJECT_ID</key>
+	<string>chat-me-50970</string>
+	<key>STORAGE_BUCKET</key>
+	<string>chat-me-50970.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:203928614103:ios:2d77972ac313126e5fac92</string>
+</dict>
+</plist>

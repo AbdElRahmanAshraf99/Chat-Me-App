@@ -15,6 +15,7 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // final message=ModalRoute.of(context)!.settings.arguments;
     return Scaffold(
       appBar: AppBar(
         title: Text("Friend Requests"),
