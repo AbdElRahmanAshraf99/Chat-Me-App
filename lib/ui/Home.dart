@@ -1,6 +1,7 @@
 import 'package:chat_me_app/dtos/DTOUser.dart';
 import 'package:chat_me_app/ui/profile.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/UserServices.dart';
 import 'FriendRequestsPage.dart';
@@ -138,7 +139,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               "Logout",
               style: TextStyle(color: Colors.red),
             ),
-            onTap: () {
+            onTap: () async {
+              SharedPreferences pref = await SharedPreferences.getInstance();
+              pref.remove("chat-me-username");
+              pref.remove("chat-me-password");
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => LoginPage()), (r) => false);
             },
           ),

@@ -4,6 +4,7 @@ import 'package:chat_me_app/services/UserServices.dart';
 import 'package:chat_me_app/ui/Home.dart';
 import 'package:chat_me_app/ui/register.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../components/button.dart';
 import '../components/textField.dart';
@@ -137,6 +138,9 @@ class _LoginPageState extends State<LoginPage> {
                                               var res = await UserServices.login(
                                             username: usernameController.text, password: passwordController.text);
                                               if (res.statusCode == 200) {
+                                                SharedPreferences prefs = await SharedPreferences.getInstance();
+                                                prefs.setString("chat-me-username",usernameController.text);
+                                                prefs.setString("chat-me-password",passwordController.text);
                                                 Navigator.pushAndRemoveUntil(context,
                                               MaterialPageRoute(builder: (context) => HomePage()), (r) => false);
                                               } else {

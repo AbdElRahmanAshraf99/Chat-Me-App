@@ -13,8 +13,9 @@ class FirebaseAPI {
 
   initNotifications() async {
     await _firebaseMessaging.requestPermission();
-    final fcmToken = await _firebaseMessaging.getToken();
-    print("FCM TOKEN:" + fcmToken.toString());
+    // Testing Purposes
+    // final fcmToken = await _firebaseMessaging.getToken();
+    // print("FCM TOKEN:" + fcmToken.toString());
     initPushNotifications();
     initLocalNotificationsMsg();
   }

@@ -41,8 +41,8 @@ class UserServices {
     var response = await http.post(Uri.parse(CommonConstants.BASE_URL + CommonConstants.LOGIN_USER_URL), body: map);
     if (response.statusCode == 200) {
       token = "Bearer " + json.decode(response.body)["token"];
+      currentUser = DTOUser.fromJson(json.decode(response.body)["user"]);
       _requestHeaders['Authorization'] = token;
-      await UserServices.fetchCurrentUserData();
     } else {
       failureToast(response.body);
     }
